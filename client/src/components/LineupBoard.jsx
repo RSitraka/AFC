@@ -1,63 +1,60 @@
 import { useMemo, useState } from 'react';
-import { DndContext, useDraggable, useDroppable, DragOverlay, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { FORMATS, FORMATIONS, formationSlots } from '../data/formations.js';
 import PitchLines from './PitchLines.jsx';
 
 const playerLabel = (p) => p?.lastName || p?.firstName || '';
 
-function Token({ id, player, label }) {
-  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id, data: { playerId: player?.id } });
+// Jeton (clic pour ajouter / retirer / remplacer un joueur).
+function Token({ player, label, x, y, onClick }) {
   return (
-    <div
-      ref={setNodeRef}
+    <button
+      type="button"
       className={`token ${player ? '' : 'empty'}`}
-      style={{ left: 0, top: 0, opacity: isDragging ? 0.3 : 1 }}
-      {...(player ? listeners : {})}
-      {...(player ? attributes : {})}
+      style={{ left: `${x}%`, top: `${y}%` }}
+      onClick={onClick}
     >
-      <div className="jersey">{player ? (player.number ?? playerLabel(player)[0]) : '+'}</div>
-      {player && <div className="tname">{playerLabel(player)}</div>}
-      <div className="tlabel">{label}</div>
-    </div>
+      <span className="jersey">{player ? (player.number ?? playerLabel(player)[0]) : '+'}</span>
+      {player && <span className="tname">{playerLabel(player)}</span>}
+      <span className="tlabel">{label}</span>
+    </button>
   );
 }
 
-function Slot({ slot, player }) {
-  const { setNodeRef, isOver } = useDroppable({ id: slot.id, data: { slotId: slot.id } });
+// Modale de sélection d'un joueur.
+function PlayerPicker({ title, players, onPick, onRemove, onClose }) {
+  const [q, setQ] = useState('');
+  const list = players.filter((p) => `${p.firstName} ${p.lastName}`.toLowerCase().includes(q.toLowerCase()));
   return (
-    <div ref={setNodeRef} style={{ position: 'absolute', left: `${slot.x}%`, top: `${slot.y}%`, width: 1, height: 1 }}>
-      <div style={{ position: 'absolute', outline: isOver ? '2px dashed #fff' : 'none', borderRadius: 8 }}>
-        <Token id={`tok-${slot.id}`} player={player} label={slot.label} />
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <div className="spread">
+          <h3 style={{ margin: 0 }}>{title}</h3>
+          <button type="button" className="btn sm secondary" onClick={onClose}>✕</button>
+        </div>
+        {onRemove && (
+          <button type="button" className="btn sm danger" style={{ marginTop: '0.6rem' }} onClick={onRemove}>
+            Retirer ce joueur
+          </button>
+        )}
+        <input style={{ marginTop: '0.6rem' }} placeholder="🔍 Rechercher…" value={q} onChange={(e) => setQ(e.target.value)} />
+        <div className="picker-list">
+          {list.length === 0 && <span className="muted">Aucun joueur disponible.</span>}
+          {list.map((p) => (
+            <button type="button" key={p.id} className="squad-chip" onClick={() => onPick(p.id)}>
+              <span className="num">{p.number ?? '–'}</span>{p.firstName} {p.lastName}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );
 }
 
-function DropZone({ id, children, title }) {
-  const { setNodeRef, isOver } = useDroppable({ id });
-  return (
-    <div className="card" ref={setNodeRef} style={{ outline: isOver ? '2px dashed var(--club-primary)' : 'none' }}>
-      <h3>{title}</h3>
-      <div className="bench">{children}</div>
-    </div>
-  );
-}
-
-function SquadChip({ player }) {
-  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: `squad-${player.id}`, data: { playerId: player.id } });
-  return (
-    <div ref={setNodeRef} className="squad-chip" style={{ opacity: isDragging ? 0.3 : 1 }} {...listeners} {...attributes}>
-      <span className="num">{player.number ?? '–'}</span>{playerLabel(player)}
-    </div>
-  );
-}
-
-// Plateau de composition réutilisable (terrain + effectif + remplaçants).
+// Plateau de composition (clic pour placer — compatible mobile).
 // Contrôlé : `board = { format, formation, assignments, subs }`, `onChange(nextBoard)`.
 export default function LineupBoard({ players, board, onChange, pitchRef, allowFormat = true }) {
   const { format, formation, assignments, subs } = board;
-  const [activeId, setActiveId] = useState(null);
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+  const [picker, setPicker] = useState(null); // { type:'slot'|'sub', slotId? }
 
   const slots = useMemo(() => formationSlots(format, formation), [format, formation]);
   const byId = useMemo(() => Object.fromEntries(players.map((p) => [p.id, p])), [players]);
@@ -65,33 +62,28 @@ export default function LineupBoard({ players, board, onChange, pitchRef, allowF
   const assignedIds = new Set([...Object.values(assignments), ...subs]);
   const available = players.filter((p) => !assignedIds.has(p.id));
 
-  const changeFormat = (f) => {
-    onChange({ format: f, formation: Object.keys(FORMATIONS[f])[0], assignments: {}, subs: [] });
-  };
+  const changeFormat = (f) => onChange({ format: f, formation: Object.keys(FORMATIONS[f])[0], assignments: {}, subs: [] });
   const changeFormation = (f) => onChange({ ...board, formation: f, assignments: {} });
 
-  const handleDragEnd = (event) => {
-    setActiveId(null);
-    const { active, over } = event;
-    if (!over) return;
-    const playerId = active.data.current?.playerId;
-    if (!playerId) return;
-
+  // Place un joueur (le retire d'abord de tout autre emplacement).
+  const place = (playerId, target) => {
     const clearedAssign = Object.fromEntries(Object.entries(assignments).filter(([, pid]) => pid !== playerId));
     const nextSubs = subs.filter((id) => id !== playerId);
-
-    if (over.id === 'subs') {
-      onChange({ ...board, assignments: clearedAssign, subs: [...nextSubs, playerId] });
-    } else if (over.id === 'squad') {
-      onChange({ ...board, assignments: clearedAssign, subs: nextSubs });
-    } else {
-      onChange({ ...board, assignments: { ...clearedAssign, [over.id]: playerId }, subs: nextSubs });
-    }
+    if (target.type === 'sub') onChange({ ...board, assignments: clearedAssign, subs: [...nextSubs, playerId] });
+    else onChange({ ...board, assignments: { ...clearedAssign, [target.slotId]: playerId }, subs: nextSubs });
+    setPicker(null);
   };
+
+  const removeFromSlot = (slotId) => {
+    const next = { ...assignments };
+    delete next[slotId];
+    onChange({ ...board, assignments: next });
+    setPicker(null);
+  };
+  const removeSub = (pid) => onChange({ ...board, subs: subs.filter((id) => id !== pid) });
 
   const filledCount = Object.values(assignments).filter(Boolean).length;
   const emptyCount = slots.length - filledCount;
-  const activePlayer = activeId ? byId[activeId] : null;
 
   return (
     <div>
@@ -99,7 +91,7 @@ export default function LineupBoard({ players, board, onChange, pitchRef, allowF
         {allowFormat && (
           <div className="pill-select">
             {FORMATS.map((f) => (
-              <button key={f} className={`pill ${format === f ? 'active' : ''}`} onClick={() => changeFormat(f)}>
+              <button key={f} type="button" className={`pill ${format === f ? 'active' : ''}`} onClick={() => changeFormat(f)}>
                 Foot à {f}
               </button>
             ))}
@@ -107,7 +99,7 @@ export default function LineupBoard({ players, board, onChange, pitchRef, allowF
         )}
         <div className="pill-select">
           {Object.keys(FORMATIONS[format]).map((f) => (
-            <button key={f} className={`pill ${formation === f ? 'active' : ''}`} onClick={() => changeFormation(f)}>
+            <button key={f} type="button" className={`pill ${formation === f ? 'active' : ''}`} onClick={() => changeFormation(f)}>
               {f}
             </button>
           ))}
@@ -117,37 +109,52 @@ export default function LineupBoard({ players, board, onChange, pitchRef, allowF
         {subs.length > 0 && <span className="badge">{subs.length} remplaçant(s)</span>}
       </div>
 
-      <DndContext
-        sensors={sensors}
-        onDragStart={(e) => setActiveId(e.active.data.current?.playerId)}
-        onDragEnd={handleDragEnd}
-      >
-        <div className="board-grid">
-          <div className="pitch" ref={pitchRef}>
-            <PitchLines />
-            {slots.map((s) => <Slot key={s.id} slot={s} player={byId[assignments[s.id]]} />)}
-          </div>
-
-          <div className="grid" style={{ gap: '1rem' }}>
-            <DropZone id="squad" title={`Effectif (${available.length})`}>
-              {available.length === 0 && <span className="muted">Tous placés.</span>}
-              {available.map((p) => <SquadChip key={p.id} player={p} />)}
-            </DropZone>
-            <DropZone id="subs" title={`Remplaçants (${subs.length})`}>
-              {subs.length === 0 && <span className="muted">Glissez ici les remplaçants.</span>}
-              {subs.map((pid) => byId[pid] && <SquadChip key={pid} player={byId[pid]} />)}
-            </DropZone>
-          </div>
+      <div className="board-grid">
+        <div className="pitch" ref={pitchRef}>
+          <PitchLines />
+          {slots.map((s) => {
+            const player = byId[assignments[s.id]];
+            return (
+              <Token
+                key={s.id}
+                player={player}
+                label={s.label}
+                x={s.x}
+                y={s.y}
+                onClick={() => setPicker({ type: 'slot', slotId: s.id })}
+              />
+            );
+          })}
         </div>
 
-        <DragOverlay>
-          {activePlayer && (
-            <div className="squad-chip" style={{ cursor: 'grabbing' }}>
-              <span className="num">{activePlayer.number ?? '–'}</span>{playerLabel(activePlayer)}
-            </div>
-          )}
-        </DragOverlay>
-      </DndContext>
+        <div className="card">
+          <div className="spread">
+            <h3>Remplaçants ({subs.length})</h3>
+            <button type="button" className="btn sm" onClick={() => setPicker({ type: 'sub' })}>+ Ajouter</button>
+          </div>
+          <div className="bench">
+            {subs.length === 0 && <span className="muted">Aucun remplaçant.</span>}
+            {subs.map((pid) => byId[pid] && (
+              <span key={pid} className="squad-chip">
+                <span className="num">{byId[pid].number ?? '–'}</span>{playerLabel(byId[pid])}
+                <button type="button" className="btn sm danger" style={{ padding: '0 0.4rem' }} onClick={() => removeSub(pid)}>✕</button>
+              </span>
+            ))}
+          </div>
+          <p className="muted" style={{ marginBottom: 0 }}>Touchez un poste « + » sur le terrain pour y placer un joueur.</p>
+          <p className="muted" style={{ margin: 0 }}>Disponibles : {available.length}</p>
+        </div>
+      </div>
+
+      {picker && (
+        <PlayerPicker
+          title={picker.type === 'sub' ? 'Ajouter un remplaçant' : 'Placer un joueur'}
+          players={available}
+          onPick={(pid) => place(pid, picker)}
+          onRemove={picker.type === 'slot' && assignments[picker.slotId] ? () => removeFromSlot(picker.slotId) : null}
+          onClose={() => setPicker(null)}
+        />
+      )}
     </div>
   );
 }

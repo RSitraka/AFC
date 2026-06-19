@@ -58,15 +58,7 @@ export default function Dashboard() {
         </div>
 
         <div className="card">
-          <h3>🥇 Meilleurs buteurs</h3>
-          {data.topScorers.filter((s) => s.goals > 0).length === 0 && <p className="muted">Aucun but enregistré.</p>}
-          {data.topScorers.filter((s) => s.goals > 0).map((s, i) => (
-            <div className="spread" key={s.id} style={{ padding: '0.3rem 0' }}>
-              <span>{i + 1}. {s.name} <span className="muted">#{s.number ?? '--'}</span></span>
-              <span className="badge green">{s.goals} but{s.goals > 1 ? 's' : ''}</span>
-            </div>
-          ))}
-          <h3 style={{ marginTop: '1rem' }}>🏃 Les plus utilisés</h3>
+          <h3>🏃 Les plus utilisés</h3>
           {data.mostUsed.map((s) => (
             <div className="spread" key={s.id} style={{ padding: '0.2rem 0' }}>
               <span>{s.name}</span>

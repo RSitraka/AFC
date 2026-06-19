@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { api } from '../api.js';
 import FifaCard from '../components/FifaCard.jsx';
 import PasswordChangeForm from '../components/PasswordChangeForm.jsx';
@@ -9,8 +9,19 @@ import { STAT_FIELDS, positionLabel, overallRating } from '../data/football.js';
 export default function PlayerDetail() {
   const { id } = useParams();
   const { isStaff, user } = useAuth();
+  const navigate = useNavigate();
   const [player, setPlayer] = useState(null);
   const [error, setError] = useState('');
+
+  const setRole = async (role) => {
+    const updated = await api.post(`/players/${id}/role`, { role });
+    setPlayer((p) => ({ ...p, role: updated.role }));
+  };
+  const removePlayer = async () => {
+    if (!window.confirm('Supprimer définitivement ce joueur et toutes ses données ?')) return;
+    await api.del(`/players/${id}`);
+    navigate('/effectif');
+  };
 
   useEffect(() => {
     api.get(`/players/${id}`).then(setPlayer).catch((e) => setError(e.message));
@@ -61,7 +72,21 @@ export default function PlayerDetail() {
       </div>
 
       {isStaff && user?.id !== player.id && (
-        <div style={{ marginTop: '1rem', maxWidth: 480 }}>
+        <div className="grid cols-2" style={{ marginTop: '1rem' }}>
+          <div className="card">
+            <h3>⚙️ Gestion du compte</h3>
+            <p className="muted" style={{ marginTop: 0 }}>
+              Rôle actuel : <span className="badge gold">{player.role === 'STAFF' ? 'Staff' : 'Joueur simple'}</span>
+            </p>
+            <div className="row">
+              {player.role === 'STAFF' ? (
+                <button className="btn sm secondary" onClick={() => setRole('PLAYER')}>Passer en joueur simple</button>
+              ) : (
+                <button className="btn sm" onClick={() => setRole('STAFF')}>Passer en staff</button>
+              )}
+              <button className="btn sm danger" onClick={removePlayer}>Supprimer le joueur</button>
+            </div>
+          </div>
           <PasswordChangeForm playerId={player.id} requireCurrent={false} title={`Réinitialiser le mot de passe de ${player.firstName}`} />
         </div>
       )}

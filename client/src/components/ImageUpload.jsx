@@ -65,7 +65,7 @@ export default function ImageUpload({ value, onChange, label = 'Photo', shape = 
             : <span className="muted" style={{ fontSize: '1.6rem' }}>📷</span>}
         </div>
         <div className="row" style={{ gap: '0.4rem' }}>
-          <input ref={inputRef} type="file" accept="image/*" capture="environment" hidden onChange={onFile} />
+          <input ref={inputRef} type="file" accept="image/*" hidden onChange={onFile} />
           <button type="button" className="btn sm secondary" disabled={busy} onClick={() => inputRef.current?.click()}>
             {busy ? '…' : (value ? 'Changer' : 'Choisir une photo')}
           </button>
