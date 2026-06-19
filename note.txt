@@ -1,0 +1,84 @@
+Crée une application web full-stack de gestion d'une équipe de football, avec une interface immersive sur le thème d'un terrain de foot (pelouse verte, lignes blanches, ambiance stade), responsive (mobile + desktop) et déployable sur Render.
+Stack technique imposé
+
+Frontend : React (avec Vite), React Router, et @dnd-kit/core pour le drag & drop.
+Backend : Node.js + Express, exposant une API REST.
+Base de données : PostgreSQL (instance gérée par Render).
+ORM : Prisma (migrations + schéma clair).
+Déploiement : configuré pour Render dès le départ.
+
+Architecture du projet
+Monorepo simple :
+/client                        → app React (Vite)
+/server                        → API Express + Prisma
+/server/prisma/schema.prisma
+render.yaml
+README.md
+En production, le backend Express sert le build statique du frontend (client/dist), afin de déployer un seul web service + une base de données sur Render (plus simple, pas de problème de CORS).
+Identité visuelle
+
+Thème terrain de football : fond vert pelouse avec bandes tondues, lignes blanches, surfaces de réparation, rond central.
+Palette personnalisable aux couleurs du club, logo et nom du club en en-tête.
+Cartes joueurs « style fiche FIFA », typographie sportive, mode sombre en option.
+
+Schéma de base de données (PostgreSQL via Prisma)
+Crée au minimum ces modèles :
+
+Team : id, name, logoUrl, primaryColor, secondaryColor
+Player : id, teamId, firstName, lastName, photoUrl, number, mainPosition (GK/DEF/MID/FWD), secondaryPositions, strongFoot (left/right/both), birthDate,
+PlayerStats : id, playerId,
+Staff : id, teamId, fullName, role (coach/assistant/physio…)
+Match : id, teamId, opponent, date, location, scoreFor, scoreAgainst
+Attendance : id, playerId, eventType (match/training), eventId, present (bool)
+Lineup : id, teamId, name, format (5/7/9/11), formation (ex. "4-3-3"), createdAt
+LineupPosition : id, lineupId, playerId, role (starter/substitute), x, y (coordonnées sur le terrain), positionLabel
+
+Les staff et tous le comptes sont tous des joueurs, a la premier connexion, chaque joueur creer son profil, selectionne parmis plusieurs poste qui lui correspond :DB, DC, DG, DD, MD, MG, MOC, MR, AC, AIG, AID, MLG, MLD
+Il y a des champs a completer aussi d'une note sur 10:
+vitesse, tir, passe, arret, reactivite, saut, endurance, risque de crampe, balle au pied, defense, drible
+Chaque joueur entre ces donnees et chaque joueur peut voir les stats de chacun avec un cadre de type FIFA avec la moyenne des notes, ces points sont modifiables plus tard par l'user uniquement
+
+Fournis les migrations Prisma et un script de seed avec une équipe de démo et quelques joueurs.
+API REST (Express)
+Génère les endpoints CRUD pour : players, staff, matches, trainings, attendances, lineups. Exemples :
+
+GET/POST/PUT/DELETE /api/players
+GET/POST /api/lineups et GET/PUT/DELETE /api/lineups/:id
+GET /api/dashboard (stats agrégées : meilleur buteur, joueurs les plus utilisés)
+
+Ajoute la gestion des erreurs et la validation des entrées.
+Fonctionnalités frontend
+
+Effectif : liste filtrable (poste, statut) + cartes joueurs ; création / édition / suppression.
+Club & staff : infos équipe, staff, calendrier des matchs et entraînements, suivi des présences.
+Composition tactique (module central) :
+
+Sélection du format de jeu : 5, 7, 9 ou 11.
+Terrain interactif adapté au format choisi.
+Schémas tactiques préconfigurés par format :
+
+Foot à 5 (GK + 4) : 2-2, 1-2-1, 3-1, 1-3
+Foot à 7 (GK + 6) : 2-3-1, 3-2-1, 2-1-2-1, 3-3
+Foot à 9 (GK + 8) : 3-3-2, 3-2-3, 2-4-2, 3-4-1
+Foot à 11 (GK + 10) : 4-4-2, 4-3-3, 3-5-2, 4-2-3-1, 5-3-2
+
+
+Drag & drop des joueurs de l'effectif vers les positions du terrain ; banc des remplaçants.
+Blocage si le nombre autorisé est dépassé ; postes vides signalés.
+Nom + numéro affichés sur chaque maillot.
+Enregistrement de plusieurs compositions en base, réouverture, et export en image (html-to-image).
+
+Les ecrans sont les suivants:
+-dashboard pour tous, pour voir la moyenne de but marques pour chaque type de match qu'on a fait(5, 7, 9, 11)
+    la liste des joueurs
+    le solde de l'equipe
+-liste des joueurs avec leur note comme card FIFA
+-les formations enregistres
+-ecran de formation ou tout le monde peut essayer des formations mais seuls les comptte de type staff peuvent enregistrer
+
+Pour les staff(qui sont aussi joueur)
+-ecran de compte de l'qeuipe (ajouter une somme avec description, retirer une somme avec description)
+-ecran pour les cotisations de chaque joueur, chaque mois chaque joueur cotise a compter de ce mois de juin, on y verra la somme totale payee par le joueur et une marque aui indique qu;il est en retard de combien de mois en cas de retard
+
+
+A la creation des comptes, il devra etre valide par un staff, cree un compte staff par defaut nomme (admin)

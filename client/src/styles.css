@@ -1,0 +1,257 @@
+/* ===========================================================================
+   AFC — Thème terrain de football
+   =========================================================================== */
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Teko:wght@500;600;700&display=swap');
+
+:root {
+  --club-primary: #15803d;
+  --club-secondary: #facc15;
+
+  --grass-1: #1f9d4d;
+  --grass-2: #18913f;
+  --line: rgba(255, 255, 255, 0.85);
+
+  --bg: #0f1b12;
+  --surface: #ffffff;
+  --surface-2: #f3f6f4;
+  --text: #14241a;
+  --text-soft: #5b6b61;
+  --border: #e2e8e4;
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+  --radius: 14px;
+}
+
+:root[data-theme='dark'] {
+  --surface: #15211a;
+  --surface-2: #1c2c23;
+  --text: #e8f3ec;
+  --text-soft: #9fb3a6;
+  --border: #2a3c31;
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  --bg: #0a130d;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, .display { font-family: 'Teko', 'Rajdhani', sans-serif; letter-spacing: 0.5px; }
+h1 { font-size: 2.2rem; margin: 0; }
+h2 { font-size: 1.6rem; margin: 0 0 0.5rem; }
+a { color: inherit; }
+button { font-family: inherit; }
+
+/* --- Fond pelouse avec bandes tondues ------------------------------------- */
+.pitch-bg {
+  min-height: 100vh;
+  background-color: var(--grass-2);
+  background-image: repeating-linear-gradient(
+    90deg,
+    var(--grass-1) 0,
+    var(--grass-1) 8%,
+    var(--grass-2) 8%,
+    var(--grass-2) 16%
+  );
+}
+:root[data-theme='dark'] .pitch-bg {
+  background-image: repeating-linear-gradient(
+    90deg, #14532d 0, #14532d 8%, #0f3d22 8%, #0f3d22 16%
+  );
+}
+
+/* --- En-tête / navbar ----------------------------------------------------- */
+.navbar {
+  position: sticky; top: 0; z-index: 30;
+  display: flex; align-items: center; gap: 1rem;
+  padding: 0.6rem 1.1rem;
+  background: linear-gradient(180deg, var(--club-primary), color-mix(in srgb, var(--club-primary) 80%, #000));
+  color: #fff;
+  box-shadow: var(--shadow);
+}
+.navbar .brand { display: flex; align-items: center; gap: 0.6rem; font-family: 'Teko'; font-size: 1.6rem; }
+.navbar .brand img { width: 38px; height: 38px; object-fit: contain; border-radius: 8px; background: #fff2; }
+.navbar .logo-fallback {
+  width: 38px; height: 38px; display: grid; place-items: center;
+  background: var(--club-secondary); color: #1a1a1a; border-radius: 8px; font-weight: 700;
+}
+.nav-links { display: flex; gap: 0.3rem; flex-wrap: wrap; margin-left: auto; align-items: center; }
+.nav-links a {
+  text-decoration: none; color: #fff; padding: 0.4rem 0.7rem; border-radius: 8px;
+  font-weight: 600; opacity: 0.85; white-space: nowrap;
+}
+.nav-links a:hover { background: #ffffff22; opacity: 1; }
+.nav-links a.active { background: var(--club-secondary); color: #1a1a1a; opacity: 1; }
+
+.icon-btn {
+  background: #ffffff22; color: #fff; border: none; border-radius: 8px;
+  padding: 0.4rem 0.6rem; cursor: pointer; font-weight: 600;
+}
+
+/* Menu mobile */
+.burger { display: none; background: #ffffff22; border: none; color: #fff; font-size: 1.4rem; border-radius: 8px; padding: 0.2rem 0.6rem; cursor: pointer; }
+
+@media (max-width: 860px) {
+  .burger { display: block; margin-left: auto; }
+  .nav-links {
+    position: absolute; top: 100%; left: 0; right: 0; margin: 0;
+    flex-direction: column; align-items: stretch;
+    background: var(--club-primary); padding: 0.5rem; gap: 0.2rem;
+    max-height: 0; overflow: hidden; transition: max-height 0.25s ease;
+  }
+  .nav-links.open { max-height: 80vh; }
+}
+
+/* --- Layout --------------------------------------------------------------- */
+.container { max-width: 1100px; margin: 0 auto; padding: 1.2rem; }
+.page-title { color: #fff; text-shadow: 0 2px 6px rgba(0,0,0,0.4); margin-bottom: 1rem; }
+.grid { display: grid; gap: 1rem; }
+.grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+.grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+.grid.auto { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+@media (max-width: 720px) {
+  .grid.cols-2, .grid.cols-3 { grid-template-columns: 1fr; }
+}
+
+.card {
+  background: var(--surface); color: var(--text);
+  border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 1rem; box-shadow: var(--shadow);
+}
+.card h3 { margin: 0 0 0.6rem; }
+.muted { color: var(--text-soft); }
+.row { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; }
+.spread { display: flex; justify-content: space-between; align-items: center; gap: 0.6rem; }
+.stat-big { font-family: 'Teko'; font-size: 2.4rem; line-height: 1; color: var(--club-primary); }
+.badge { display: inline-block; padding: 0.15rem 0.55rem; border-radius: 999px; font-size: 0.78rem; font-weight: 700; background: var(--surface-2); color: var(--text-soft); }
+.badge.green { background: #16a34a22; color: #15803d; }
+.badge.red { background: #dc262622; color: #b91c1c; }
+.badge.gold { background: var(--club-secondary); color: #1a1a1a; }
+
+/* --- Formulaires ---------------------------------------------------------- */
+label { display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.25rem; }
+input, select, textarea {
+  width: 100%; padding: 0.55rem 0.7rem; border: 1px solid var(--border);
+  border-radius: 10px; background: var(--surface); color: var(--text); font-family: inherit; font-size: 1rem;
+}
+input:focus, select:focus, textarea:focus { outline: 2px solid var(--club-primary); border-color: transparent; }
+.field { margin-bottom: 0.8rem; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 0.4rem; justify-content: center;
+  background: var(--club-primary); color: #fff; border: none; border-radius: 10px;
+  padding: 0.6rem 1rem; font-weight: 700; cursor: pointer; font-size: 1rem;
+}
+.btn:hover { filter: brightness(1.08); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn.secondary { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
+.btn.gold { background: var(--club-secondary); color: #1a1a1a; }
+.btn.danger { background: #dc2626; }
+.btn.sm { padding: 0.35rem 0.6rem; font-size: 0.85rem; }
+
+.error { background: #dc262615; color: #b91c1c; border: 1px solid #dc262640; padding: 0.6rem 0.8rem; border-radius: 10px; margin-bottom: 0.8rem; }
+.success { background: #16a34a15; color: #15803d; border: 1px solid #16a34a40; padding: 0.6rem 0.8rem; border-radius: 10px; margin-bottom: 0.8rem; }
+
+/* --- Auth ----------------------------------------------------------------- */
+.auth-wrap { min-height: 100vh; display: grid; place-items: center; padding: 1rem; }
+.auth-card { width: 100%; max-width: 420px; }
+
+table { width: 100%; border-collapse: collapse; }
+th, td { text-align: left; padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--border); }
+th { font-size: 0.82rem; text-transform: uppercase; color: var(--text-soft); }
+.table-wrap { overflow-x: auto; }
+
+/* --- Carte FIFA ----------------------------------------------------------- */
+.fifa-card {
+  position: relative; width: 230px; border-radius: 18px; padding: 1rem 1rem 0.8rem;
+  color: #2a210a; overflow: hidden;
+  background: linear-gradient(160deg, #f7e08a 0%, #e9c84e 45%, #d4a017 100%);
+  box-shadow: var(--shadow);
+  border: 2px solid #b8860b;
+}
+.fifa-card.gk { background: linear-gradient(160deg, #c9e8ff, #79b8e6 50%, #3f7fb5); border-color:#2b5e86; color:#0c2336; }
+.fifa-card .fifa-top { display: flex; gap: 0.4rem; }
+.fifa-card .fifa-rating { font-family: 'Teko'; font-size: 2.6rem; line-height: 0.9; }
+.fifa-card .fifa-pos { font-weight: 700; font-size: 0.95rem; opacity: 0.85; }
+.fifa-card .fifa-meta { display: flex; flex-direction: column; align-items: center; margin-top: -1.6rem; }
+.fifa-card .fifa-photo {
+  width: 96px; height: 96px; border-radius: 50%; object-fit: cover;
+  background: #ffffff66; display: grid; place-items: center; font-family: 'Teko'; font-size: 2rem;
+}
+.fifa-card .fifa-name {
+  text-transform: uppercase; font-family: 'Teko'; font-size: 1.5rem; letter-spacing: 1px;
+  border-top: 1px solid #00000033; border-bottom: 1px solid #00000033;
+  width: 100%; text-align: center; margin: 0.4rem 0; padding: 0.1rem 0;
+}
+.fifa-card .fifa-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 0.05rem 0.8rem; font-weight: 600; font-size: 0.92rem; }
+.fifa-card .fifa-stats span b { font-family: 'Teko'; margin-right: 0.3rem; }
+.fifa-card .fifa-number { position: absolute; top: 0.6rem; right: 0.8rem; font-family: 'Teko'; font-size: 1.4rem; opacity: 0.6; }
+
+/* --- Terrain interactif (tactique) --------------------------------------- */
+.pitch {
+  position: relative; width: 100%; aspect-ratio: 68 / 105; max-width: 560px; margin: 0 auto;
+  border-radius: 12px; overflow: hidden;
+  background-color: #1f9d4d;
+  background-image: repeating-linear-gradient(0deg, #1f9d4d 0 9%, #18913f 9% 18%);
+  border: 3px solid var(--line);
+  touch-action: none;
+}
+.pitch .pitch-lines { position: absolute; inset: 0; pointer-events: none; }
+.pitch .pitch-lines * { position: absolute; border: 2px solid var(--line); }
+.pitch .center-circle { width: 26%; aspect-ratio: 1; border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+.pitch .center-line { left: 0; right: 0; top: 50%; height: 0; border-width: 1px 0 0 0; }
+.pitch .center-dot { width: 5px; height: 5px; background: var(--line); border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%,-50%); border: none; }
+.pitch .box-top { width: 44%; height: 16%; top: 0; left: 28%; border-top: none; }
+.pitch .box-bottom { width: 44%; height: 16%; bottom: 0; left: 28%; border-bottom: none; }
+.pitch .six-top { width: 22%; height: 7%; top: 0; left: 39%; border-top: none; }
+.pitch .six-bottom { width: 22%; height: 7%; bottom: 0; left: 39%; border-bottom: none; }
+
+.token {
+  position: absolute; transform: translate(-50%, -50%);
+  display: flex; flex-direction: column; align-items: center; width: 64px;
+  cursor: grab; user-select: none;
+}
+.token:active { cursor: grabbing; }
+.token .jersey {
+  width: 42px; height: 42px; border-radius: 10px;
+  background: var(--club-primary); color: #fff;
+  display: grid; place-items: center; font-family: 'Teko'; font-size: 1.5rem; font-weight: 700;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.35); border: 2px solid #fff;
+}
+.token.empty .jersey { background: #ffffff33; border-style: dashed; color: #ffffffcc; }
+.token .tname {
+  margin-top: 2px; font-size: 0.72rem; font-weight: 700; color: #fff; text-shadow: 0 1px 3px #000;
+  max-width: 70px; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.token .tlabel { font-size: 0.62rem; color: var(--club-secondary); font-weight: 700; text-shadow: 0 1px 2px #000; }
+
+/* Banc + effectif draggable */
+.bench { display: flex; gap: 0.5rem; flex-wrap: wrap; min-height: 60px; }
+.squad-chip {
+  display: flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.5rem; border-radius: 10px;
+  background: var(--surface-2); border: 1px solid var(--border); cursor: grab; font-weight: 600;
+}
+.squad-chip .num { background: var(--club-primary); color: #fff; border-radius: 6px; padding: 0 0.4rem; font-family: 'Teko'; }
+.squad-chip.used { opacity: 0.4; }
+
+.dnd-dragging { opacity: 0.85; z-index: 50; }
+
+.empty-state { text-align: center; color: var(--text-soft); padding: 2rem; }
+.spinner { width: 38px; height: 38px; border: 4px solid #ffffff55; border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.center-screen { min-height: 60vh; display: grid; place-items: center; }
+
+.range-row { display: grid; grid-template-columns: 110px 1fr 32px; gap: 0.5rem; align-items: center; margin-bottom: 0.3rem; }
+.range-row input[type=range] { padding: 0; }
+.toolbar { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; margin-bottom: 0.8rem; }
+.pill-select { display: flex; gap: 0.3rem; flex-wrap: wrap; }
+.pill {
+  padding: 0.35rem 0.7rem; border-radius: 999px; border: 1px solid var(--border);
+  background: var(--surface); cursor: pointer; font-weight: 600;
+}
+.pill.active { background: var(--club-primary); color: #fff; border-color: transparent; }

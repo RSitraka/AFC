@@ -1,0 +1,301 @@
+// Prisma schema — AFC Football Manager
+// Base de données : PostgreSQL (gérée par Render).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum Role {
+  PLAYER
+  STAFF
+}
+
+enum AccountStatus {
+  PENDING // en attente de validation par un staff
+  APPROVED
+  REJECTED
+}
+
+enum MainPosition {
+  GK
+  DEF
+  MID
+  FWD
+}
+
+enum StrongFoot {
+  LEFT
+  RIGHT
+  BOTH
+}
+
+enum LineupRole {
+  STARTER
+  SUBSTITUTE
+}
+
+enum EventType {
+  MATCH
+  TRAINING
+}
+
+enum TransactionType {
+  DEPOSIT // ajout d'une somme
+  WITHDRAWAL // retrait d'une somme
+}
+
+// ---------------------------------------------------------------------------
+// Équipe / club
+// ---------------------------------------------------------------------------
+
+model Team {
+  id             String   @id @default(cuid())
+  name           String
+  logoUrl        String?
+  primaryColor   String   @default("#15803d") // vert pelouse
+  secondaryColor String   @default("#facc15") // jaune club
+  monthlyDues    Float    @default(10) // cotisation mensuelle par joueur
+  duesStartMonth String   @default("2026-06") // début des cotisations (YYYY-MM)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  players      Player[]
+  staff        Staff[]
+  matches      Match[]
+  trainings    Training[]
+  lineups      Lineup[]
+  transactions TeamTransaction[]
+}
+
+// ---------------------------------------------------------------------------
+// Joueur = compte. Chaque compte (staff inclus) est un joueur.
+// ---------------------------------------------------------------------------
+
+model Player {
+  id     String @id @default(cuid())
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId String
+
+  // Authentification / compte
+  email        String        @unique
+  passwordHash String
+  role         Role          @default(PLAYER)
+  status       AccountStatus @default(PENDING)
+  // Le profil est complété à la première connexion.
+  profileCompleted Boolean   @default(false)
+
+  // Profil joueur
+  firstName          String
+  lastName           String
+  photoUrl           String?
+  number             Int?
+  mainPosition       MainPosition @default(MID)
+  // Postes détaillés sélectionnés : DB, DC, DG, DD, MD, MG, MOC, MR, AC, AIG, AID, MLG, MLD
+  positions          String[]     @default([])
+  secondaryPositions String[]     @default([])
+  strongFoot         StrongFoot   @default(RIGHT)
+  birthDate          DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  stats               PlayerStats?
+  attendances         Attendance[]
+  lineupPositions     LineupPosition[]
+  duesPayments        DuesPayment[]
+  goals               Match[]            @relation("MatchScorers")
+  matchParticipations MatchParticipant[]
+
+  @@index([teamId])
+}
+
+// ---------------------------------------------------------------------------
+// Statistiques joueur (notes sur 10) — éditables uniquement par le joueur.
+// ---------------------------------------------------------------------------
+
+model PlayerStats {
+  id       String @id @default(cuid())
+  player   Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  playerId String @unique
+
+  vitesse      Int @default(5) // vitesse
+  tir          Int @default(5) // tir
+  passe        Int @default(5) // passe
+  arret        Int @default(5) // arrêt (gardien)
+  reactivite   Int @default(5) // réactivité
+  saut         Int @default(5) // saut / détente
+  endurance    Int @default(5) // endurance
+  risqueCrampe Int @default(5) // risque de crampe (plus bas = mieux)
+  balleAuPied  Int @default(5) // balle au pied
+  defense      Int @default(5) // défense
+  drible       Int @default(5) // dribble
+
+  updatedAt DateTime @updatedAt
+}
+
+// ---------------------------------------------------------------------------
+// Staff du club (encadrement affiché dans "Club & staff").
+// Les comptes staff sont des Player avec role=STAFF ; ce modèle liste
+// l'encadrement (coach, adjoint, kiné...) qu'il ait un compte ou non.
+// ---------------------------------------------------------------------------
+
+model Staff {
+  id       String @id @default(cuid())
+  team     Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId   String
+  fullName String
+  role     String // coach / assistant / physio...
+  photoUrl String?
+
+  @@index([teamId])
+}
+
+// ---------------------------------------------------------------------------
+// Matchs & entraînements
+// ---------------------------------------------------------------------------
+
+model Match {
+  id           String   @id @default(cuid())
+  team         Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId       String
+  opponent     String
+  date         DateTime
+  location     String?
+  format       Int      @default(11) // 5 / 7 / 9 / 11
+  formation    String? // schéma utilisé (ex. "4-3-3")
+  scoreFor     Int?
+  scoreAgainst Int?
+  createdAt    DateTime @default(now())
+
+  scorers      Player[]           @relation("MatchScorers")
+  attendances  Attendance[]
+  participants MatchParticipant[]
+
+  @@index([teamId])
+}
+
+// Joueurs convoqués pour un match (titulaires + remplaçants).
+// Permet de compter le nombre de matchs joués par joueur.
+model MatchParticipant {
+  id            String     @id @default(cuid())
+  match         Match      @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  matchId       String
+  player        Player     @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  playerId      String
+  role          LineupRole @default(STARTER)
+  positionLabel String?
+  x             Float? // position sur le terrain (optionnel)
+  y             Float?
+
+  @@unique([matchId, playerId])
+  @@index([matchId])
+  @@index([playerId])
+}
+
+model Training {
+  id        String   @id @default(cuid())
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId    String
+  title     String   @default("Entraînement")
+  date      DateTime
+  location  String?
+  createdAt DateTime @default(now())
+
+  attendances Attendance[]
+
+  @@index([teamId])
+}
+
+// ---------------------------------------------------------------------------
+// Présences (match / entraînement)
+// ---------------------------------------------------------------------------
+
+model Attendance {
+  id        String    @id @default(cuid())
+  player    Player    @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  playerId  String
+  eventType EventType
+  eventId   String // id du Match ou du Training
+  present   Boolean   @default(true)
+
+  match    Match?    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  matchId  String?
+  training Training? @relation(fields: [trainingId], references: [id], onDelete: Cascade)
+  trainingId String?
+
+  createdAt DateTime @default(now())
+
+  @@unique([playerId, eventType, eventId])
+  @@index([playerId])
+}
+
+// ---------------------------------------------------------------------------
+// Compositions tactiques
+// ---------------------------------------------------------------------------
+
+model Lineup {
+  id        String   @id @default(cuid())
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId    String
+  name      String
+  format    Int // 5 / 7 / 9 / 11
+  formation String // ex. "4-3-3"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  positions LineupPosition[]
+
+  @@index([teamId])
+}
+
+model LineupPosition {
+  id            String     @id @default(cuid())
+  lineup        Lineup     @relation(fields: [lineupId], references: [id], onDelete: Cascade)
+  lineupId      String
+  player        Player?    @relation(fields: [playerId], references: [id], onDelete: SetNull)
+  playerId      String?
+  role          LineupRole @default(STARTER)
+  x             Float      @default(50) // position horizontale (0-100)
+  y             Float      @default(50) // position verticale (0-100)
+  positionLabel String? // ex. "MOC", "AC"...
+
+  @@index([lineupId])
+}
+
+// ---------------------------------------------------------------------------
+// Finances : compte de l'équipe + cotisations
+// ---------------------------------------------------------------------------
+
+model TeamTransaction {
+  id          String          @id @default(cuid())
+  team        Team            @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId      String
+  type        TransactionType
+  amount      Float
+  description String
+  createdAt   DateTime        @default(now())
+
+  @@index([teamId])
+}
+
+model DuesPayment {
+  id          String   @id @default(cuid())
+  player      Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  playerId    String
+  month       String // mois couvert au format "YYYY-MM"
+  amount      Float
+  description String?
+  createdAt   DateTime @default(now())
+
+  @@unique([playerId, month])
+  @@index([playerId])
+}

@@ -1,0 +1,35 @@
+# Render Blueprint — un seul Web Service (Express qui sert client/dist) + une base PostgreSQL.
+# Déploiement : connectez ce repo à Render, "New +" -> "Blueprint", Render lit ce fichier.
+services:
+  - type: web
+    name: afc-football-manager
+    runtime: node
+    plan: free
+    # Build : installe server + client, build le front (client/dist), génère le client Prisma.
+    buildCommand: npm run build
+    # Start : applique les migrations puis démarre l'API qui sert aussi le front.
+    startCommand: npm run prisma:migrate --prefix server && npm run seed --prefix server && npm run start --prefix server
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: afc-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ADMIN_EMAIL
+        value: admin@afc.local
+      - key: ADMIN_PASSWORD
+        value: admin1234
+      - key: SEED_ON_DEPLOY
+        value: "true"
+
+databases:
+  - name: afc-db
+    plan: free
+    databaseName: afc
+    user: afc
