@@ -45,7 +45,7 @@ export default function PlayerDetail() {
         <div className="card">
           <h3>Fiche</h3>
           <div className="grid cols-2">
-            <div><span className="muted">Numéro</span><br />#{player.number ?? '--'}</div>
+            <div><span className="muted">Numéro</span><br />#{player.number ?? '--'}{player.secondaryNumber != null ? ` / #${player.secondaryNumber}` : ''}</div>
             <div><span className="muted">Poste principal</span><br /><span className="badge">{player.mainPosition}</span></div>
             <div><span className="muted">Pied fort</span><br />{player.strongFoot}</div>
             <div><span className="muted">Matchs joués</span><br /><b className="stat-big" style={{ fontSize: '1.6rem' }}>{player.matchesPlayed ?? 0}</b></div>

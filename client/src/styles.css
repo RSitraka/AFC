@@ -168,13 +168,18 @@ th { font-size: 0.82rem; text-transform: uppercase; color: var(--text-soft); }
 
 /* --- Carte FIFA ----------------------------------------------------------- */
 .fifa-card {
-  position: relative; width: 230px; border-radius: 18px; padding: 1rem 1rem 0.8rem;
-  color: #2a210a; overflow: hidden;
+  position: relative; width: 100%; max-width: 240px; border-radius: 18px; padding: 1rem 1rem 0.8rem;
+  color: #2a210a; overflow: hidden; box-shadow: var(--shadow);
   background: linear-gradient(160deg, #f7e08a 0%, #e9c84e 45%, #d4a017 100%);
-  box-shadow: var(--shadow);
   border: 2px solid #b8860b;
 }
-.fifa-card.gk { background: linear-gradient(160deg, #c9e8ff, #79b8e6 50%, #3f7fb5); border-color:#2b5e86; color:#0c2336; }
+/* Couleur selon la note : rouge < orange < bleu < gris < bronze < doré */
+.fifa-card.tier-red { background: linear-gradient(160deg, #fca5a5, #ef4444 50%, #b91c1c); border-color: #7f1d1d; color: #fff; }
+.fifa-card.tier-orange { background: linear-gradient(160deg, #fdba74, #f97316 50%, #c2410c); border-color: #9a3412; color: #fff; }
+.fifa-card.tier-blue { background: linear-gradient(160deg, #93c5fd, #3b82f6 50%, #1d4ed8); border-color: #1e3a8a; color: #fff; }
+.fifa-card.tier-gray { background: linear-gradient(160deg, #e5e7eb, #9ca3af 50%, #6b7280); border-color: #4b5563; color: #111827; }
+.fifa-card.tier-bronze { background: linear-gradient(160deg, #e6b07f, #cd7f32 50%, #8c5a2b); border-color: #5b3a1c; color: #fff; }
+.fifa-card.tier-gold { background: linear-gradient(160deg, #f7e08a, #e9c84e 45%, #d4a017); border-color: #b8860b; color: #2a210a; }
 .fifa-card .fifa-top { display: flex; gap: 0.4rem; }
 .fifa-card .fifa-rating { font-family: 'Teko'; font-size: 2.6rem; line-height: 0.9; }
 .fifa-card .fifa-pos { font-weight: 700; font-size: 0.95rem; opacity: 0.85; }
@@ -212,16 +217,17 @@ th { font-size: 0.82rem; text-transform: uppercase; color: var(--text-soft); }
 
 .token {
   position: absolute; transform: translate(-50%, -50%);
-  display: flex; flex-direction: column; align-items: center; width: 64px;
+  display: flex; flex-direction: column; align-items: center; width: 74px;
   cursor: pointer; user-select: none;
   background: transparent; border: none; padding: 0; font: inherit; color: inherit;
 }
 .token .jersey {
-  width: 42px; height: 42px; border-radius: 10px;
+  width: 54px; height: 54px; border-radius: 50%;
   background: var(--club-primary); color: #fff;
-  display: grid; place-items: center; font-family: 'Teko'; font-size: 1.5rem; font-weight: 700;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.35); border: 2px solid #fff;
+  display: grid; place-items: center; font-family: 'Teko'; font-size: 1.7rem; font-weight: 700;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.35); border: 2px solid #fff; overflow: hidden;
 }
+.token .jersey img { width: 100%; height: 100%; object-fit: cover; }
 .token.empty .jersey { background: #ffffff33; border-style: dashed; color: #ffffffcc; }
 .token .tname {
   margin-top: 2px; font-size: 0.72rem; font-weight: 700; color: #fff; text-shadow: 0 1px 3px #000;
@@ -269,7 +275,8 @@ th { font-size: 0.82rem; text-transform: uppercase; color: var(--text-soft); }
 @media (max-width: 640px) {
   .container { padding: 0.8rem 0.7rem; }
   h1 { font-size: 1.8rem; }
-  .page-title { margin-bottom: 0.7rem; }
+  /* Mobile : on masque l'indication de page en haut (la nav indique déjà l'écran). */
+  .page-title { display: none; }
   .navbar { padding: 0.5rem 0.7rem; }
   .navbar .brand { font-size: 1.3rem; }
   .navbar .brand img, .navbar .logo-fallback { width: 32px; height: 32px; }
@@ -281,9 +288,9 @@ th { font-size: 0.82rem; text-transform: uppercase; color: var(--text-soft); }
   .btn { padding: 0.6rem 0.9rem; } /* zones tactiles confortables */
   .btn.sm { padding: 0.4rem 0.6rem; }
   /* Terrain : jetons un peu plus compacts */
-  .token { width: 52px; }
-  .token .jersey { width: 36px; height: 36px; font-size: 1.2rem; }
-  .token .tname { font-size: 0.66rem; max-width: 58px; }
+  .token { width: 60px; }
+  .token .jersey { width: 44px; height: 44px; font-size: 1.3rem; }
+  .token .tname { font-size: 0.66rem; max-width: 60px; }
   .pitch { max-width: 100%; }
 }
 
@@ -305,6 +312,22 @@ th { font-size: 0.82rem; text-transform: uppercase; color: var(--text-soft); }
 }
 .picker-list { display: flex; flex-direction: column; gap: 0.4rem; margin-top: 0.6rem; }
 .picker-list .squad-chip { width: 100%; justify-content: flex-start; cursor: pointer; }
+
+/* --- Grille effectif (cartes FIFA) --------------------------------------- */
+.roster-grid {
+  display: grid; gap: 1rem; justify-items: center;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
+@media (max-width: 640px) {
+  .roster-grid { grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+  .roster-grid .fifa-card { padding: 0.7rem 0.55rem 0.6rem; border-radius: 14px; }
+  .roster-grid .fifa-photo { width: 60px; height: 60px; font-size: 1.4rem; }
+  .roster-grid .fifa-rating { font-size: 2rem; }
+  .roster-grid .fifa-name { font-size: 1.1rem; }
+  .roster-grid .fifa-meta { margin-top: -1.1rem; }
+  .roster-grid .fifa-stats { font-size: 0.78rem; gap: 0.02rem 0.4rem; }
+  .roster-grid .fifa-number { font-size: 1rem; }
+}
 
 /* --- Champ mot de passe avec œil ----------------------------------------- */
 .pw-wrap { position: relative; }

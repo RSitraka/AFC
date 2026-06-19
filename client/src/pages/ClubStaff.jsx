@@ -59,17 +59,26 @@ function TeamCard() {
 function StaffCard() {
   const { isStaff } = useAuth();
   const [staff, setStaff] = useState([]);
-  const [form, setForm] = useState({ fullName: '', role: 'coach', photoUrl: '' });
+  const [players, setPlayers] = useState([]);
+  const [form, setForm] = useState({ playerId: '', role: 'coach' });
 
   const load = () => api.get('/staff').then(setStaff);
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); api.get('/players').then(setPlayers); }, []);
 
   const add = async (e) => {
     e.preventDefault();
-    await api.post('/staff', form);
-    setForm({ fullName: '', role: 'coach', photoUrl: '' });
+    const p = players.find((x) => x.id === form.playerId);
+    if (!p) return;
+    await api.post('/staff', {
+      fullName: `${p.firstName} ${p.lastName}`,
+      role: form.role,
+      photoUrl: p.photoUrl || '',
+    });
+    setForm({ playerId: '', role: 'coach' });
     load();
   };
+
+  const firstNameOf = (s) => (s.fullName || '').split(' ')[0];
 
   return (
     <div className="card">
@@ -81,7 +90,7 @@ function StaffCard() {
             {s.photoUrl
               ? <img src={s.photoUrl} alt="" style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }} />
               : <span style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--surface-2)', display: 'grid', placeItems: 'center' }}>🧑</span>}
-            {s.fullName} <span className="badge">{s.role}</span>
+            {firstNameOf(s)} <span className="badge">{s.role}</span>
           </span>
           {isStaff && <button className="btn sm danger" onClick={async () => { await api.del(`/staff/${s.id}`); load(); }}>✕</button>}
         </div>
@@ -89,11 +98,13 @@ function StaffCard() {
       {isStaff && (
         <form onSubmit={add} style={{ marginTop: '0.6rem' }}>
           <div className="row">
-            <input style={{ flex: 2 }} placeholder="Nom complet" value={form.fullName} required onChange={(e) => setForm({ ...form, fullName: e.target.value })} />
+            <select style={{ flex: 2 }} value={form.playerId} required onChange={(e) => setForm({ ...form, playerId: e.target.value })}>
+              <option value="">— Choisir un compte —</option>
+              {players.map((p) => <option key={p.id} value={p.id}>{p.firstName} {p.lastName}</option>)}
+            </select>
             <input style={{ flex: 1 }} placeholder="Rôle" value={form.role} required onChange={(e) => setForm({ ...form, role: e.target.value })} />
           </div>
-          <ImageUpload label="Photo (optionnel)" value={form.photoUrl} onChange={(v) => setForm({ ...form, photoUrl: v })} />
-          <button className="btn sm">Ajouter</button>
+          <button className="btn sm" style={{ marginTop: '0.4rem' }}>Ajouter</button>
         </form>
       )}
     </div>
@@ -135,16 +146,26 @@ function Calendar() {
         </div>
         <div className="table-wrap">
           <table>
-            <thead><tr><th>Date</th><th>Adversaire</th><th>Score</th><th></th></tr></thead>
+            <thead><tr><th>Date</th><th>Adversaire</th><th>Statut / Score</th><th></th></tr></thead>
             <tbody>
-              {matches.map((mt) => (
-                <tr key={mt.id}>
-                  <td>{fmtDate(mt.date)}</td>
-                  <td>{mt.opponent} <span className="badge">à {mt.format}</span></td>
-                  <td>{mt.scoreFor != null ? `${mt.scoreFor}-${mt.scoreAgainst}` : '—'}</td>
-                  <td>{isStaff && <button className="btn sm danger" onClick={async () => { await api.del(`/matches/${mt.id}`); load(); }}>✕</button>}</td>
-                </tr>
-              ))}
+              {matches.map((mt) => {
+                const finished = mt.scoreFor != null && mt.scoreAgainst != null;
+                return (
+                  <tr key={mt.id}>
+                    <td>{fmtDate(mt.date)}</td>
+                    <td><Link to={`/match/${mt.id}`}>{mt.opponent}</Link> <span className="badge">à {mt.format}</span></td>
+                    <td>
+                      {finished
+                        ? <b>{mt.scoreFor} - {mt.scoreAgainst}</b>
+                        : <Link className="badge red" to={`/match/${mt.id}`}>À venir</Link>}
+                    </td>
+                    <td className="row">
+                      <Link className="btn sm secondary" to={`/match/${mt.id}`}>{isStaff && !finished ? 'Score' : 'Voir'}</Link>
+                      {isStaff && <button className="btn sm danger" onClick={async () => { await api.del(`/matches/${mt.id}`); load(); }}>✕</button>}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

@@ -10,7 +10,7 @@ const router = Router();
 const matchInclude = {
   scorers: { select: { id: true, firstName: true, lastName: true } },
   participants: {
-    include: { player: { select: { id: true, firstName: true, lastName: true, number: true } } },
+    include: { player: { select: { id: true, firstName: true, lastName: true, number: true, photoUrl: true } } },
   },
 };
 

@@ -98,6 +98,7 @@ model Player {
   lastName           String
   photoUrl           String?
   number             Int?
+  secondaryNumber    Int?
   mainPosition       MainPosition @default(MID)
   // Postes détaillés sélectionnés : DB, DC, DG, DD, MD, MG, MOC, MR, AC, AIG, AID, MLG, MLD
   positions          String[]     @default([])

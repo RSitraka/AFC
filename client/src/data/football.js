@@ -54,5 +54,15 @@ export function overallRating(stats) {
   return Math.round(avg10 * 10); // sur 100, style FIFA
 }
 
+// Couleur de la carte selon la note (du plus mauvais au meilleur).
+export function ratingTier(rating) {
+  if (rating < 40) return 'red';
+  if (rating < 55) return 'orange';
+  if (rating < 65) return 'blue';
+  if (rating < 73) return 'gray';
+  if (rating < 82) return 'bronze';
+  return 'gold';
+}
+
 export const positionLabel = (value) =>
   DETAILED_POSITIONS.find((p) => p.value === value)?.label?.split(' — ')[1] || value;

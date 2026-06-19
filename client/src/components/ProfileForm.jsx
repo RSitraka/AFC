@@ -11,6 +11,7 @@ export default function ProfileForm({ initial, onSubmit, submitLabel = 'Enregist
     lastName: initial?.lastName || '',
     photoUrl: initial?.photoUrl || '',
     number: initial?.number ?? '',
+    secondaryNumber: initial?.secondaryNumber ?? '',
     mainPosition: initial?.mainPosition || 'MID',
     positions: initial?.positions || [],
     strongFoot: initial?.strongFoot || 'RIGHT',
@@ -41,6 +42,7 @@ export default function ProfileForm({ initial, onSubmit, submitLabel = 'Enregist
       await onSubmit({
         ...form,
         number: form.number === '' ? null : Number(form.number),
+        secondaryNumber: form.secondaryNumber === '' ? null : Number(form.secondaryNumber),
         birthDate: form.birthDate || null,
         stats,
       });
@@ -74,6 +76,12 @@ export default function ProfileForm({ initial, onSubmit, submitLabel = 'Enregist
               <label>Numéro</label>
               <input type="number" min="0" max="99" value={form.number} onChange={(e) => set('number', e.target.value)} />
             </div>
+            <div className="field" style={{ flex: 1 }}>
+              <label>Numéro secondaire</label>
+              <input type="number" min="0" max="99" value={form.secondaryNumber} onChange={(e) => set('secondaryNumber', e.target.value)} />
+            </div>
+          </div>
+          <div className="row">
             <div className="field" style={{ flex: 1 }}>
               <label>Pied fort</label>
               <select value={form.strongFoot} onChange={(e) => set('strongFoot', e.target.value)}>

@@ -1,17 +1,17 @@
-import { STAT_FIELDS, overallRating } from '../data/football.js';
+import { STAT_FIELDS, overallRating, ratingTier } from '../data/football.js';
 
 const initials = (p) => `${p.firstName?.[0] || ''}${p.lastName?.[0] || ''}`.toUpperCase();
 
-// Carte joueur style fiche FIFA, avec la note globale (moyenne).
+// Carte joueur style fiche FIFA. Couleur selon la note (rouge → doré).
 export default function FifaCard({ player, onClick }) {
   const stats = player.stats || {};
   const rating = overallRating(stats);
-  const isGk = player.mainPosition === 'GK';
+  const tier = ratingTier(rating);
   const shown = STAT_FIELDS.filter((f) => !f.isRisk).slice(0, 6);
 
   return (
-    <div className={`fifa-card ${isGk ? 'gk' : ''}`} onClick={onClick} style={{ cursor: onClick ? 'pointer' : 'default' }}>
-      <div className="fifa-number">#{player.number ?? '--'}</div>
+    <div className={`fifa-card tier-${tier}`} onClick={onClick} style={{ cursor: onClick ? 'pointer' : 'default' }}>
+      <div className="fifa-number">#{player.number ?? '--'}{player.secondaryNumber != null ? ` / ${player.secondaryNumber}` : ''}</div>
       <div className="fifa-top">
         <div>
           <div className="fifa-rating">{rating || '--'}</div>
@@ -20,11 +20,11 @@ export default function FifaCard({ player, onClick }) {
       </div>
       <div className="fifa-meta">
         {player.photoUrl ? (
-          <img className="fifa-photo" src={player.photoUrl} alt={player.lastName} />
+          <img className="fifa-photo" src={player.photoUrl} alt={player.firstName} />
         ) : (
           <div className="fifa-photo">{initials(player)}</div>
         )}
-        <div className="fifa-name">{player.lastName || player.firstName}</div>
+        <div className="fifa-name">{player.firstName || player.lastName}</div>
       </div>
       <div className="fifa-stats">
         {shown.map((f) => (

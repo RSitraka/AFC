@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { prisma } from '../lib/prisma.js';
-import { asyncHandler } from '../middleware/error.js';
+import { ApiError, asyncHandler } from '../middleware/error.js';
 import { validate } from '../middleware/validate.js';
 import { requireAuth, requireStaff } from '../middleware/auth.js';
 import { transactionSchema, duesPaymentSchema, idParam } from '../schemas.js';
@@ -122,10 +122,24 @@ router.post(
   asyncHandler(async (req, res) => {
     const team = await prisma.team.findUnique({ where: { id: req.user.teamId } });
     const { playerId, month, amount, description } = req.body;
-    const payment = await prisma.duesPayment.upsert({
-      where: { playerId_month: { playerId, month } },
-      create: { playerId, month, amount: amount ?? team.monthlyDues, description },
-      update: { amount: amount ?? team.monthlyDues, description },
+
+    const months = monthsSince(team.duesStartMonth);
+    if (!months.includes(month)) {
+      throw new ApiError(400, 'Mois hors de la période de cotisation');
+    }
+
+    const existing = await prisma.duesPayment.findMany({ where: { playerId }, select: { month: true } });
+    const paid = new Set(existing.map((d) => d.month));
+    if (paid.has(month)) throw new ApiError(400, 'Ce mois est déjà réglé');
+
+    // Pas de saut de mois : on ne peut régler que le premier mois non payé.
+    const nextDue = months.find((m) => !paid.has(m));
+    if (month !== nextDue) {
+      throw new ApiError(400, `Réglez d'abord les mois précédents (prochain mois dû : ${nextDue}).`);
+    }
+
+    const payment = await prisma.duesPayment.create({
+      data: { playerId, month, amount: amount ?? team.monthlyDues, description },
     });
     res.status(201).json(payment);
   }),

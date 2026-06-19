@@ -12,9 +12,11 @@ function MiniPitch({ lineup }) {
       {starters.map((p, i) => (
         <div key={i} className="token" style={{ left: `${p.x}%`, top: `${p.y}%`, width: 48 }}>
           <div className="jersey" style={{ width: 30, height: 30, fontSize: '1rem' }}>
-            {p.player?.number ?? (p.player?.lastName?.[0] || '·')}
+            {p.player?.photoUrl
+              ? <img src={p.player.photoUrl} alt="" />
+              : (p.player?.number ?? (p.player?.firstName?.[0] || '·'))}
           </div>
-          <div className="tname" style={{ fontSize: '0.6rem' }}>{p.player?.lastName || ''}</div>
+          <div className="tname" style={{ fontSize: '0.6rem' }}>{p.player?.firstName || ''}</div>
         </div>
       ))}
     </div>

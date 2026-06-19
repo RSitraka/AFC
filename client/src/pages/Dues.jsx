@@ -21,9 +21,13 @@ export default function Dues() {
 
   const confirm = async () => {
     if (amount === '' || Number(amount) <= 0) return;
-    await api.post('/finances/dues', { playerId: editing.playerId, month: editing.month, amount: Number(amount) });
-    setEditing(null); setAmount('');
-    load();
+    try {
+      await api.post('/finances/dues', { playerId: editing.playerId, month: editing.month, amount: Number(amount) });
+      setEditing(null); setAmount('');
+      load();
+    } catch (e) {
+      window.alert(e.message);
+    }
   };
 
   if (!data) return <div className="center-screen"><div className="spinner" /></div>;
@@ -65,9 +69,11 @@ export default function Dues() {
             {data.rows.map((r) => {
               const paid = new Set(r.paidMonths);
               const isMe = r.playerId === user.id;
+              // On ne peut régler que le premier mois non payé (pas de saut).
+              const nextDue = data.months.find((m) => !paid.has(m));
               return (
                 <tr key={r.playerId} style={isMe ? { background: 'var(--surface-2)' } : undefined}>
-                  <td><b>{r.lastName}</b> {r.firstName}{isMe && ' (moi)'}</td>
+                  <td><b>{r.firstName}</b>{isMe && ' (moi)'}</td>
                   <td>{formatAr(r.totalPaid)}</td>
                   <td>
                     {r.lateCount > 0
@@ -82,6 +88,8 @@ export default function Dues() {
                           <span className="badge green" title="Payé">✓</span>
                         ) : !isStaff ? (
                           <span className="muted">—</span>
+                        ) : m !== nextDue ? (
+                          <span className="muted" title="Réglez d'abord les mois précédents">·</span>
                         ) : isEditing ? (
                           <span className="row" style={{ flexWrap: 'nowrap', gap: '0.2rem', justifyContent: 'center' }}>
                             <input type="number" min="1" step="1" autoFocus value={amount} placeholder="Ar"
@@ -91,7 +99,7 @@ export default function Dues() {
                             <button className="btn sm" onClick={confirm}>✓</button>
                           </span>
                         ) : (
-                          <button className="btn sm secondary" title="Enregistrer un paiement" onClick={() => startEdit(r.playerId, m)}>+</button>
+                          <button className="btn sm secondary" title="Régler ce mois" onClick={() => startEdit(r.playerId, m)}>+</button>
                         )}
                       </td>
                     );

@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { FORMATS, FORMATIONS, formationSlots } from '../data/formations.js';
 import PitchLines from './PitchLines.jsx';
 
-const playerLabel = (p) => p?.lastName || p?.firstName || '';
+const playerLabel = (p) => p?.firstName || p?.lastName || '';
 
 // Jeton (clic pour ajouter / retirer / remplacer un joueur).
 function Token({ player, label, x, y, onClick }) {
@@ -13,7 +13,13 @@ function Token({ player, label, x, y, onClick }) {
       style={{ left: `${x}%`, top: `${y}%` }}
       onClick={onClick}
     >
-      <span className="jersey">{player ? (player.number ?? playerLabel(player)[0]) : '+'}</span>
+      <span className="jersey">
+        {player
+          ? (player.photoUrl
+            ? <img src={player.photoUrl} alt={playerLabel(player)} />
+            : (player.number ?? playerLabel(player)[0]))
+          : '+'}
+      </span>
       {player && <span className="tname">{playerLabel(player)}</span>}
       <span className="tlabel">{label}</span>
     </button>

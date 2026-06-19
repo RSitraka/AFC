@@ -61,7 +61,7 @@ export default function Dashboard() {
           <h3>🏃 Les plus utilisés</h3>
           {data.mostUsed.map((s) => (
             <div className="spread" key={s.id} style={{ padding: '0.2rem 0' }}>
-              <span>{s.name}</span>
+              <span>{s.name.split(' ')[0]}</span>
               <span className="badge">{s.matchesPlayed} match{s.matchesPlayed > 1 ? 's' : ''} joué{s.matchesPlayed > 1 ? 's' : ''}</span>
             </div>
           ))}
@@ -80,7 +80,7 @@ export default function Dashboard() {
               {data.players.map((p) => (
                 <tr key={p.id}>
                   <td>{p.number ?? '--'}</td>
-                  <td><Link to={`/joueur/${p.id}`}>{p.firstName} {p.lastName}</Link></td>
+                  <td><Link to={`/joueur/${p.id}`}>{p.firstName}</Link></td>
                   <td><span className="badge">{p.mainPosition}</span></td>
                   <td><span className="badge gold">{p.matchesPlayed ?? 0}</span></td>
                   <td className="muted">{(p.positions || []).join(', ') || '—'}</td>

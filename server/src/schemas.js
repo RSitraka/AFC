@@ -35,6 +35,7 @@ export const completeProfileSchema = z.object({
   lastName: z.string().min(1).optional(),
   photoUrl: imageString,
   number: z.coerce.number().int().min(0).max(99).nullish(),
+  secondaryNumber: z.coerce.number().int().min(0).max(99).nullish(),
   mainPosition: z.enum(MAIN_POSITIONS).optional(),
   positions: z.array(z.enum(POSITIONS)).default([]),
   secondaryPositions: z.array(z.string()).default([]),

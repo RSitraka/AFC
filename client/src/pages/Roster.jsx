@@ -46,7 +46,7 @@ export default function Roster() {
       {filtered.length === 0 ? (
         <div className="card empty-state">Aucun joueur ne correspond aux filtres.</div>
       ) : (
-        <div className="grid auto" style={{ justifyItems: 'center' }}>
+        <div className="roster-grid">
           {filtered.map((p) => (
             <FifaCard key={p.id} player={p} onClick={() => navigate(`/joueur/${p.id}`)} />
           ))}

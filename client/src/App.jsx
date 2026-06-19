@@ -11,6 +11,7 @@ import Formations from './pages/Formations.jsx';
 import Tactics from './pages/Tactics.jsx';
 import ClubStaff from './pages/ClubStaff.jsx';
 import MatchCreate from './pages/MatchCreate.jsx';
+import MatchView from './pages/MatchView.jsx';
 import Finances from './pages/Finances.jsx';
 import Dues from './pages/Dues.jsx';
 import Approvals from './pages/Approvals.jsx';
@@ -62,6 +63,7 @@ export default function App() {
         <Route path="tactique" element={<Tactics />} />
         <Route path="club" element={<ClubStaff />} />
         <Route path="match/nouveau" element={<Protected staffOnly><MatchCreate /></Protected>} />
+        <Route path="match/:id" element={<MatchView />} />
         <Route path="profil" element={<Profile />} />
         <Route path="finances" element={<Finances />} />
         <Route path="cotisations" element={<Dues />} />
