@@ -4,6 +4,8 @@ import { api } from '../api.js';
 
 export default function Register() {
   const [form, setForm] = useState({ firstName: '', lastName: '', email: '', password: '' });
+  const [confirm, setConfirm] = useState('');
+  const [show, setShow] = useState(false);
   const [error, setError] = useState('');
   const [done, setDone] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -11,6 +13,10 @@ export default function Register() {
   const submit = async (e) => {
     e.preventDefault();
     setError('');
+    if (form.password !== confirm) {
+      setError('Les mots de passe ne correspondent pas');
+      return;
+    }
     setBusy(true);
     try {
       await api.post('/auth/register', form);
@@ -53,8 +59,28 @@ export default function Register() {
               </div>
               <div className="field">
                 <label>Mot de passe (6 caractères min.)</label>
-                <input type="password" value={form.password} required minLength={6}
-                  onChange={(e) => setForm({ ...form, password: e.target.value })} />
+                <div className="pw-wrap">
+                  <input type={show ? 'text' : 'password'} value={form.password} required minLength={6}
+                    onChange={(e) => setForm({ ...form, password: e.target.value })} />
+                  <button type="button" className="pw-eye" onClick={() => setShow((s) => !s)}
+                    aria-label={show ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}>
+                    {show ? '🙈' : '👁️'}
+                  </button>
+                </div>
+              </div>
+              <div className="field">
+                <label>Confirmer le mot de passe</label>
+                <div className="pw-wrap">
+                  <input type={show ? 'text' : 'password'} value={confirm} required minLength={6}
+                    onChange={(e) => setConfirm(e.target.value)} />
+                  <button type="button" className="pw-eye" onClick={() => setShow((s) => !s)}
+                    aria-label={show ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}>
+                    {show ? '🙈' : '👁️'}
+                  </button>
+                </div>
+                {confirm && form.password !== confirm && (
+                  <span className="muted" style={{ color: '#dc2626' }}>Les mots de passe ne correspondent pas</span>
+                )}
               </div>
               <button className="btn" style={{ width: '100%' }} disabled={busy}>
                 {busy ? 'Création…' : "S'inscrire"}
