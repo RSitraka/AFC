@@ -8,7 +8,7 @@ services:
     # Build : installe server + client, build le front (client/dist), génère le client Prisma.
     buildCommand: npm run build
     # Start : applique les migrations puis démarre l'API qui sert aussi le front.
-    startCommand: npm run prisma:migrate --prefix server && npm run seed --prefix server && npm run start --prefix server
+    startCommand: npm run prisma:deploy --prefix server && npm run seed --prefix server && npm run start --prefix server
     healthCheckPath: /api/health
     envVars:
       - key: NODE_VERSION
