@@ -44,6 +44,15 @@ async function main() {
     },
   });
   console.log(`✔ Compte staff par défaut : ${ADMIN_EMAIL}`);
+
+  // Nettoyage ponctuel des données d'argent, déclenché par la variable
+  // d'environnement WIPE_MONEY=true (ne touche à aucun compte ni mot de passe).
+  if (process.env.WIPE_MONEY === 'true') {
+    const tx = await prisma.teamTransaction.deleteMany({});
+    const dues = await prisma.duesPayment.deleteMany({});
+    console.log(`🧹 Données d'argent supprimées (mouvements: ${tx.count}, cotisations: ${dues.count}).`);
+  }
+
   console.log('✅ Seed terminé (compte admin uniquement).');
 }
 
