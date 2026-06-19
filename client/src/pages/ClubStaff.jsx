@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api.js';
 import { useAuth } from '../context/AuthContext.jsx';
+import ImageUpload from '../components/ImageUpload.jsx';
 
 const fmtDate = (d) => new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
 
@@ -31,8 +32,12 @@ function TeamCard() {
       <form onSubmit={save}>
         <div className="field"><label>Nom du club</label>
           <input value={form.name} disabled={!isStaff} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
-        <div className="field"><label>Logo (URL)</label>
-          <input value={form.logoUrl || ''} disabled={!isStaff} onChange={(e) => setForm({ ...form, logoUrl: e.target.value })} /></div>
+        {isStaff ? (
+          <ImageUpload label="Logo du club" shape="square" value={form.logoUrl || ''} onChange={(v) => setForm({ ...form, logoUrl: v })} />
+        ) : form.logoUrl ? (
+          <div className="field"><label>Logo du club</label>
+            <img src={form.logoUrl} alt="logo" style={{ width: 72, height: 72, objectFit: 'cover', borderRadius: 12, border: '1px solid var(--border)' }} /></div>
+        ) : null}
         <div className="row">
           <div className="field" style={{ flex: 1 }}><label>Couleur principale</label>
             <input type="color" value={form.primaryColor} disabled={!isStaff} onChange={(e) => setForm({ ...form, primaryColor: e.target.value })} /></div>
@@ -40,7 +45,7 @@ function TeamCard() {
             <input type="color" value={form.secondaryColor} disabled={!isStaff} onChange={(e) => setForm({ ...form, secondaryColor: e.target.value })} /></div>
         </div>
         <div className="row">
-          <div className="field" style={{ flex: 1 }}><label>Cotisation mensuelle (€)</label>
+          <div className="field" style={{ flex: 1 }}><label>Cotisation mensuelle (Ar)</label>
             <input type="number" step="0.5" value={form.monthlyDues} disabled={!isStaff} onChange={(e) => setForm({ ...form, monthlyDues: e.target.value })} /></div>
           <div className="field" style={{ flex: 1 }}><label>Début cotisations</label>
             <input type="month" value={form.duesStartMonth} disabled={!isStaff} onChange={(e) => setForm({ ...form, duesStartMonth: e.target.value })} /></div>
@@ -54,7 +59,7 @@ function TeamCard() {
 function StaffCard() {
   const { isStaff } = useAuth();
   const [staff, setStaff] = useState([]);
-  const [form, setForm] = useState({ fullName: '', role: 'coach' });
+  const [form, setForm] = useState({ fullName: '', role: 'coach', photoUrl: '' });
 
   const load = () => api.get('/staff').then(setStaff);
   useEffect(() => { load(); }, []);
@@ -62,7 +67,7 @@ function StaffCard() {
   const add = async (e) => {
     e.preventDefault();
     await api.post('/staff', form);
-    setForm({ fullName: '', role: 'coach' });
+    setForm({ fullName: '', role: 'coach', photoUrl: '' });
     load();
   };
 
@@ -72,14 +77,22 @@ function StaffCard() {
       {staff.length === 0 && <p className="muted">Aucun membre du staff.</p>}
       {staff.map((s) => (
         <div className="spread" key={s.id} style={{ padding: '0.3rem 0', borderBottom: '1px solid var(--border)' }}>
-          <span>{s.fullName} <span className="badge">{s.role}</span></span>
+          <span className="row" style={{ gap: '0.5rem' }}>
+            {s.photoUrl
+              ? <img src={s.photoUrl} alt="" style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }} />
+              : <span style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--surface-2)', display: 'grid', placeItems: 'center' }}>🧑</span>}
+            {s.fullName} <span className="badge">{s.role}</span>
+          </span>
           {isStaff && <button className="btn sm danger" onClick={async () => { await api.del(`/staff/${s.id}`); load(); }}>✕</button>}
         </div>
       ))}
       {isStaff && (
-        <form onSubmit={add} className="row" style={{ marginTop: '0.6rem' }}>
-          <input style={{ flex: 2 }} placeholder="Nom complet" value={form.fullName} required onChange={(e) => setForm({ ...form, fullName: e.target.value })} />
-          <input style={{ flex: 1 }} placeholder="Rôle" value={form.role} required onChange={(e) => setForm({ ...form, role: e.target.value })} />
+        <form onSubmit={add} style={{ marginTop: '0.6rem' }}>
+          <div className="row">
+            <input style={{ flex: 2 }} placeholder="Nom complet" value={form.fullName} required onChange={(e) => setForm({ ...form, fullName: e.target.value })} />
+            <input style={{ flex: 1 }} placeholder="Rôle" value={form.role} required onChange={(e) => setForm({ ...form, role: e.target.value })} />
+          </div>
+          <ImageUpload label="Photo (optionnel)" value={form.photoUrl} onChange={(v) => setForm({ ...form, photoUrl: v })} />
           <button className="btn sm">Ajouter</button>
         </form>
       )}

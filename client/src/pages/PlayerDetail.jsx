@@ -2,10 +2,13 @@ import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { api } from '../api.js';
 import FifaCard from '../components/FifaCard.jsx';
+import PasswordChangeForm from '../components/PasswordChangeForm.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
 import { STAT_FIELDS, positionLabel, overallRating } from '../data/football.js';
 
 export default function PlayerDetail() {
   const { id } = useParams();
+  const { isStaff, user } = useAuth();
   const [player, setPlayer] = useState(null);
   const [error, setError] = useState('');
 
@@ -23,7 +26,7 @@ export default function PlayerDetail() {
       <Link to="/effectif" className="btn sm secondary">← Retour à l'effectif</Link>
       <h1 className="page-title" style={{ marginTop: '0.6rem' }}>{player.firstName} {player.lastName}</h1>
 
-      <div className="grid" style={{ gridTemplateColumns: '230px 1fr', alignItems: 'start' }}>
+      <div className="side-grid">
         <div className="card" style={{ display: 'grid', placeItems: 'center' }}>
           <FifaCard player={player} />
         </div>
@@ -56,6 +59,12 @@ export default function PlayerDetail() {
           </div>
         </div>
       </div>
+
+      {isStaff && user?.id !== player.id && (
+        <div style={{ marginTop: '1rem', maxWidth: 480 }}>
+          <PasswordChangeForm playerId={player.id} requireCurrent={false} title={`Réinitialiser le mot de passe de ${player.firstName}`} />
+        </div>
+      )}
     </div>
   );
 }

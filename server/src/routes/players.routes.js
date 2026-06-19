@@ -1,9 +1,10 @@
 import { Router } from 'express';
+import bcrypt from 'bcryptjs';
 import { prisma } from '../lib/prisma.js';
 import { ApiError, asyncHandler } from '../middleware/error.js';
 import { validate } from '../middleware/validate.js';
 import { requireAuth, requireStaff } from '../middleware/auth.js';
-import { updatePlayerSchema, statsSchema, idParam } from '../schemas.js';
+import { updatePlayerSchema, statsSchema, passwordChangeSchema, idParam } from '../schemas.js';
 
 const router = Router();
 
@@ -107,6 +108,32 @@ router.put(
       update: req.body,
     });
     res.json(stats);
+  }),
+);
+
+// Changement de mot de passe.
+// - Le joueur lui-même : doit fournir son mot de passe actuel.
+// - Un staff : peut réinitialiser le mot de passe de n'importe quel compte.
+router.put(
+  '/:id/password',
+  requireAuth,
+  validate({ params: idParam, body: passwordChangeSchema }),
+  asyncHandler(async (req, res) => {
+    const isSelf = req.user.id === req.params.id;
+    const isStaff = req.user.role === 'STAFF';
+    if (!isSelf && !isStaff) throw new ApiError(403, 'Action non autorisée');
+
+    const target = await prisma.player.findUnique({ where: { id: req.params.id } });
+    if (!target) throw new ApiError(404, 'Compte introuvable');
+
+    if (isSelf && !isStaff) {
+      const ok = await bcrypt.compare(req.body.currentPassword || '', target.passwordHash);
+      if (!ok) throw new ApiError(400, 'Mot de passe actuel incorrect');
+    }
+
+    const passwordHash = await bcrypt.hash(req.body.newPassword, 10);
+    await prisma.player.update({ where: { id: req.params.id }, data: { passwordHash } });
+    res.json({ message: 'Mot de passe mis à jour' });
   }),
 );
 

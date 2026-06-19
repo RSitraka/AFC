@@ -22,10 +22,18 @@ export const loginSchema = z.object({
   password: z.string().min(1),
 });
 
+// Une photo peut être une data URL (upload encodé en base64) ou une URL http.
+const imageString = z.string().max(8_000_000).or(z.literal('')).nullish();
+
+export const passwordChangeSchema = z.object({
+  currentPassword: z.string().optional(),
+  newPassword: z.string().min(6, 'Mot de passe : 6 caractères minimum'),
+});
+
 export const completeProfileSchema = z.object({
   firstName: z.string().min(1).optional(),
   lastName: z.string().min(1).optional(),
-  photoUrl: z.string().url().or(z.literal('')).nullish(),
+  photoUrl: imageString,
   number: z.coerce.number().int().min(0).max(99).nullish(),
   mainPosition: z.enum(MAIN_POSITIONS).optional(),
   positions: z.array(z.enum(POSITIONS)).default([]),
@@ -46,7 +54,7 @@ export const statsSchema = z.object(
 export const staffSchema = z.object({
   fullName: z.string().min(1),
   role: z.string().min(1),
-  photoUrl: z.string().url().or(z.literal('')).nullish(),
+  photoUrl: imageString,
 });
 
 export const matchParticipantSchema = z.object({
@@ -118,7 +126,7 @@ export const duesPaymentSchema = z.object({
 
 export const teamSchema = z.object({
   name: z.string().min(1).optional(),
-  logoUrl: z.string().url().or(z.literal('')).nullish(),
+  logoUrl: imageString,
   primaryColor: z.string().optional(),
   secondaryColor: z.string().optional(),
   monthlyDues: z.coerce.number().min(0).optional(),

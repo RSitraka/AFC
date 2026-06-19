@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { MAIN_POSITIONS, DETAILED_POSITIONS, STRONG_FEET, STAT_FIELDS } from '../data/football.js';
+import ImageUpload from './ImageUpload.jsx';
 
 const toDateInput = (d) => (d ? new Date(d).toISOString().slice(0, 10) : '');
 
@@ -66,10 +67,8 @@ export default function ProfileForm({ initial, onSubmit, submitLabel = 'Enregist
               <input value={form.lastName} required onChange={(e) => set('lastName', e.target.value)} />
             </div>
           </div>
-          <div className="field">
-            <label>Photo (URL)</label>
-            <input value={form.photoUrl} placeholder="https://…" onChange={(e) => set('photoUrl', e.target.value)} />
-          </div>
+          <ImageUpload label="Photo du joueur" value={form.photoUrl} onChange={(v) => set('photoUrl', v)} />
+
           <div className="row">
             <div className="field" style={{ flex: 1 }}>
               <label>Numéro</label>

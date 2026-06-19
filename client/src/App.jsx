@@ -63,8 +63,8 @@ export default function App() {
         <Route path="club" element={<ClubStaff />} />
         <Route path="match/nouveau" element={<Protected staffOnly><MatchCreate /></Protected>} />
         <Route path="profil" element={<Profile />} />
-        <Route path="finances" element={<Protected staffOnly><Finances /></Protected>} />
-        <Route path="cotisations" element={<Protected staffOnly><Dues /></Protected>} />
+        <Route path="finances" element={<Finances />} />
+        <Route path="cotisations" element={<Dues />} />
         <Route path="validations" element={<Protected staffOnly><Approvals /></Protected>} />
       </Route>
 

@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api.js';
+import { formatAr } from '../utils/money.js';
 
-const fmtMoney = (n) => `${Number(n || 0).toFixed(2)} €`;
+const fmtMoney = formatAr;
 
 export default function Dashboard() {
   const [data, setData] = useState(null);

@@ -255,3 +255,41 @@ th { font-size: 0.82rem; text-transform: uppercase; color: var(--text-soft); }
   background: var(--surface); cursor: pointer; font-weight: 600;
 }
 .pill.active { background: var(--club-primary); color: #fff; border-color: transparent; }
+
+/* --- Layouts responsives réutilisables ------------------------------------ */
+.board-grid { display: grid; gap: 1rem; grid-template-columns: 1fr 320px; align-items: start; }
+.side-grid { display: grid; gap: 1rem; grid-template-columns: 230px 1fr; align-items: start; }
+
+@media (max-width: 880px) {
+  .board-grid { grid-template-columns: 1fr; }
+  .side-grid { grid-template-columns: 1fr; }
+  .side-grid .fifa-card { margin: 0 auto; }
+}
+
+/* --- Optimisations mobile ------------------------------------------------- */
+@media (max-width: 640px) {
+  .container { padding: 0.8rem 0.7rem; }
+  h1 { font-size: 1.8rem; }
+  .page-title { margin-bottom: 0.7rem; }
+  .navbar { padding: 0.5rem 0.7rem; }
+  .navbar .brand { font-size: 1.3rem; }
+  .navbar .brand img, .navbar .logo-fallback { width: 32px; height: 32px; }
+  .stat-big { font-size: 2rem; }
+  .card { padding: 0.8rem; }
+  .grid { gap: 0.8rem; }
+  .fifa-card { width: 100%; max-width: 300px; }
+  th, td { padding: 0.4rem 0.45rem; font-size: 0.9rem; }
+  .btn { padding: 0.6rem 0.9rem; } /* zones tactiles confortables */
+  .btn.sm { padding: 0.4rem 0.6rem; }
+  /* Terrain : jetons un peu plus compacts */
+  .token { width: 52px; }
+  .token .jersey { width: 36px; height: 36px; font-size: 1.2rem; }
+  .token .tname { font-size: 0.66rem; max-width: 58px; }
+  .pitch { max-width: 100%; }
+}
+
+/* Évite le zoom auto iOS sur les champs (>=16px) — déjà à 1rem, on le garde. */
+@media (max-width: 420px) {
+  .nav-links a { padding: 0.55rem 0.7rem; }
+  .squad-chip { font-size: 0.9rem; }
+}

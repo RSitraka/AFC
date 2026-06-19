@@ -16,7 +16,7 @@ const clientDist = path.resolve(__dirname, '../../client/dist');
 export function createApp() {
   const app = express();
 
-  app.use(express.json({ limit: '2mb' }));
+  app.use(express.json({ limit: '8mb' })); // marge pour les photos uploadées (data URL)
   app.use(cookieParser());
   app.use(morgan(env.isProd ? 'tiny' : 'dev'));
 

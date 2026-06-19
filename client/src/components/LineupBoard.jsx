@@ -122,7 +122,7 @@ export default function LineupBoard({ players, board, onChange, pitchRef, allowF
         onDragStart={(e) => setActiveId(e.active.data.current?.playerId)}
         onDragEnd={handleDragEnd}
       >
-        <div className="grid" style={{ gridTemplateColumns: '1fr 320px', alignItems: 'start' }}>
+        <div className="board-grid">
           <div className="pitch" ref={pitchRef}>
             <PitchLines />
             {slots.map((s) => <Slot key={s.id} slot={s} player={byId[assignments[s.id]]} />)}

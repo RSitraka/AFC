@@ -54,8 +54,8 @@ export default function Layout() {
           <NavLink to="/tactique">Composition</NavLink>
           <NavLink to="/club">Club &amp; staff</NavLink>
           {isStaff && <NavLink to="/match/nouveau">+ Match</NavLink>}
-          {isStaff && <NavLink to="/finances">Compte</NavLink>}
-          {isStaff && <NavLink to="/cotisations">Cotisations</NavLink>}
+          <NavLink to="/finances">Compte</NavLink>
+          <NavLink to="/cotisations">Cotisations</NavLink>
           {isStaff && <NavLink to="/validations">Validations</NavLink>}
           <NavLink to="/profil">Mon profil</NavLink>
           <ThemeToggle />

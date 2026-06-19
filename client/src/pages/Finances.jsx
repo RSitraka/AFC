@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api.js';
+import { useAuth } from '../context/AuthContext.jsx';
+import { formatAr } from '../utils/money.js';
 
-const fmtMoney = (n) => `${Number(n || 0).toFixed(2)} €`;
 const fmtDate = (d) => new Date(d).toLocaleDateString('fr-FR');
 
 export default function Finances() {
+  const { isStaff } = useAuth();
   const [data, setData] = useState(null);
   const [form, setForm] = useState({ type: 'DEPOSIT', amount: '', description: '' });
   const [error, setError] = useState('');
@@ -27,44 +29,47 @@ export default function Finances() {
   return (
     <div>
       <h1 className="page-title">Compte de l'équipe</h1>
+      {!isStaff && <div className="card" style={{ marginBottom: '1rem' }}>👀 Consultation seule — seul le staff peut ajouter ou retirer des sommes.</div>}
 
       <div className="grid cols-3">
-        <div className="card"><div className="muted">Solde actuel</div><div className="stat-big">{fmtMoney(data.balance)}</div></div>
-        <div className="card"><div className="muted">Cotisations encaissées</div><div className="stat-big">{fmtMoney(data.duesCollected)}</div></div>
-        <div className="card">
-          <h3>Nouveau mouvement</h3>
-          {error && <div className="error">{error}</div>}
-          <form onSubmit={submit}>
-            <div className="row">
-              <select style={{ flex: 1 }} value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
-                <option value="DEPOSIT">Ajouter (+)</option>
-                <option value="WITHDRAWAL">Retirer (−)</option>
-              </select>
-              <input style={{ flex: 1 }} type="number" step="0.01" min="0" placeholder="Montant" value={form.amount} required
-                onChange={(e) => setForm({ ...form, amount: e.target.value })} />
-            </div>
-            <div className="field" style={{ marginTop: '0.4rem' }}>
-              <input placeholder="Description" value={form.description} required onChange={(e) => setForm({ ...form, description: e.target.value })} />
-            </div>
-            <button className="btn sm">Enregistrer</button>
-          </form>
-        </div>
+        <div className="card"><div className="muted">Solde actuel</div><div className="stat-big">{formatAr(data.balance)}</div></div>
+        <div className="card"><div className="muted">Cotisations encaissées</div><div className="stat-big">{formatAr(data.duesCollected)}</div></div>
+        {isStaff && (
+          <div className="card">
+            <h3>Nouveau mouvement</h3>
+            {error && <div className="error">{error}</div>}
+            <form onSubmit={submit}>
+              <div className="row">
+                <select style={{ flex: 1 }} value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
+                  <option value="DEPOSIT">Ajouter (+)</option>
+                  <option value="WITHDRAWAL">Retirer (−)</option>
+                </select>
+                <input style={{ flex: 1 }} type="number" step="1" min="0" placeholder="Montant (Ar)" value={form.amount} required
+                  onChange={(e) => setForm({ ...form, amount: e.target.value })} />
+              </div>
+              <div className="field" style={{ marginTop: '0.4rem' }}>
+                <input placeholder="Description" value={form.description} required onChange={(e) => setForm({ ...form, description: e.target.value })} />
+              </div>
+              <button className="btn sm">Enregistrer</button>
+            </form>
+          </div>
+        )}
       </div>
 
       <div className="card" style={{ marginTop: '1rem' }}>
         <h3>Historique des mouvements</h3>
         <div className="table-wrap">
           <table>
-            <thead><tr><th>Date</th><th>Type</th><th>Description</th><th>Montant</th><th></th></tr></thead>
+            <thead><tr><th>Date</th><th>Type</th><th>Description</th><th>Montant</th>{isStaff && <th></th>}</tr></thead>
             <tbody>
-              {data.transactions.length === 0 && <tr><td colSpan="5" className="muted">Aucun mouvement.</td></tr>}
+              {data.transactions.length === 0 && <tr><td colSpan={isStaff ? 5 : 4} className="muted">Aucun mouvement.</td></tr>}
               {data.transactions.map((t) => (
                 <tr key={t.id}>
                   <td>{fmtDate(t.createdAt)}</td>
                   <td><span className={`badge ${t.type === 'DEPOSIT' ? 'green' : 'red'}`}>{t.type === 'DEPOSIT' ? 'Ajout' : 'Retrait'}</span></td>
                   <td>{t.description}</td>
-                  <td><b>{t.type === 'DEPOSIT' ? '+' : '−'}{fmtMoney(t.amount)}</b></td>
-                  <td><button className="btn sm danger" onClick={async () => { await api.del(`/finances/transactions/${t.id}`); load(); }}>✕</button></td>
+                  <td><b>{t.type === 'DEPOSIT' ? '+' : '−'}{formatAr(t.amount)}</b></td>
+                  {isStaff && <td><button className="btn sm danger" onClick={async () => { await api.del(`/finances/transactions/${t.id}`); load(); }}>✕</button></td>}
                 </tr>
               ))}
             </tbody>
