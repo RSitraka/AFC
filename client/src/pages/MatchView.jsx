@@ -97,6 +97,7 @@ export default function MatchView() {
             {subs.length === 0 && <span className="muted">Aucun remplaçant.</span>}
             {subs.map((p) => (
               <span key={p.id} className="squad-chip">
+                {p.player?.photoUrl && <img className="chip-photo" src={p.player.photoUrl} alt="" />}
                 <span className="num">{p.player?.number ?? '–'}</span>{firstName(p.player)}
               </span>
             ))}

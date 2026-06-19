@@ -47,7 +47,8 @@ function PlayerPicker({ title, players, onPick, onRemove, onClose }) {
           {list.length === 0 && <span className="muted">Aucun joueur disponible.</span>}
           {list.map((p) => (
             <button type="button" key={p.id} className="squad-chip" onClick={() => onPick(p.id)}>
-              <span className="num">{p.number ?? '–'}</span>{p.firstName} {p.lastName}
+              {p.photoUrl && <img className="chip-photo" src={p.photoUrl} alt="" />}
+              <span className="num">{p.number ?? '–'}</span>{p.firstName}
             </button>
           ))}
         </div>
@@ -142,6 +143,7 @@ export default function LineupBoard({ players, board, onChange, pitchRef, allowF
             {subs.length === 0 && <span className="muted">Aucun remplaçant.</span>}
             {subs.map((pid) => byId[pid] && (
               <span key={pid} className="squad-chip">
+                {byId[pid].photoUrl && <img className="chip-photo" src={byId[pid].photoUrl} alt="" />}
                 <span className="num">{byId[pid].number ?? '–'}</span>{playerLabel(byId[pid])}
                 <button type="button" className="btn sm danger" style={{ padding: '0 0.4rem' }} onClick={() => removeSub(pid)}>✕</button>
               </span>

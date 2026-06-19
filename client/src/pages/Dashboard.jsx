@@ -41,7 +41,7 @@ export default function Dashboard() {
           <div className="table-wrap">
             <table>
               <thead>
-                <tr><th>Format</th><th>Joués</th><th>Moy. pour</th><th>Moy. contre</th></tr>
+                <tr><th>Format</th><th>Joués</th><th>Buts marqués</th><th>Concédés</th></tr>
               </thead>
               <tbody>
                 {data.goalsByFormat.map((g) => (
