@@ -7,6 +7,7 @@ import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import { env } from './lib/env.js';
 import apiRoutes from './routes/index.js';
+import pwaRoutes from './routes/pwa.routes.js';
 import { errorHandler, notFound } from './middleware/error.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -28,6 +29,9 @@ export function createApp() {
   // API
   app.use('/api', apiRoutes);
   app.use('/api', notFound);
+
+  // PWA : manifeste + icône dynamiques (logo du club).
+  app.use(pwaRoutes);
 
   // En production, Express sert le build statique du front.
   if (fs.existsSync(clientDist)) {

@@ -48,6 +48,14 @@ render.yaml                   → blueprint de déploiement Render
 - **Finances (staff)** : compte de l'équipe (ajouts/retraits) et cotisations
   mensuelles avec suivi des retards.
 
+## Application mobile (PWA)
+
+Le site est une **PWA installable** : sur mobile, ouvrez l'URL puis « Ajouter à
+l'écran d'accueil » (Android : menu Chrome ; iPhone : Partager → Sur l'écran
+d'accueil). L'app s'ouvre en plein écran avec l'**icône = logo du club**
+(manifeste et icône servis dynamiquement par Express, mis à jour si le logo
+change). La base de données reste la même base en ligne.
+
 ## Démarrage en local
 
 Pré-requis : Node 20+ et une base PostgreSQL.
